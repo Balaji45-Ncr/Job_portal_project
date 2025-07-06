@@ -7,6 +7,7 @@ from .models import JobPost, Applicant
 from .throttles import EmailPerDayThrottle
 from .serializer import JobPostSerializer, ApplicantSerializer
 from django.db.models import Count
+from rest_framework.exceptions import Throttled
 
 class JobPostListCreateView(generics.ListCreateAPIView):
     serializer_class =  JobPostSerializer
@@ -27,10 +28,6 @@ class ApplicantCreateView(generics.CreateAPIView):
     throttle_classes = [EmailPerDayThrottle]
 
     def throttled(self, request, wait):
-        """
-        Customize 429 error response.
-        """
-        return Response(
-            {"error": "Rate limit exceeded. Max 3 applications per day for this email."},
-            status=status.HTTP_429_TOO_MANY_REQUESTS
-        )
+        raise Throttled(detail={
+            "error": "Rate limit exceeded. Max 3 applications per day for this email."
+        })
